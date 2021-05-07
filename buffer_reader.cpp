@@ -1,12 +1,12 @@
+#include <iostream>
 #include "buffer_reader.h"
 
 buffer_reader::~buffer_reader() {
     in_stream.close();
 }
 
-buffer_reader::buffer_reader(const std::string &path, size_t buf_size = 2048) {
+buffer_reader::buffer_reader(const std::string &path, size_t buf_size) {
     in_stream = std::ifstream(path, std::ifstream::binary);
-    buffer = std::vector<bool>(buf_size);
     start = 0;
     end = 0;
 }
@@ -70,14 +70,30 @@ void buffer_reader::read(size_t count) {
 
         start = start + (buffer.capacity() - old_capacity);
     }
-    char tmp[count];
-    in_stream.read(tmp, count);
 
-    if(buffer.capacity() - end < count) {
-        unsigned int part = buffer.capacity() - end;
-        std::copy(tmp, tmp + part, buffer.begin() + end);
-        std::copy(tmp + part, tmp + count, buffer.begin());
-    } else {
-        std::copy(tmp, tmp + count, buffer.begin() + end);
+    int count_byte = count / 8 + 1;
+    char tmp[count_byte];
+    bool tmp_bit[count_byte * 8];
+    in_stream.read(tmp, count_byte);
+
+    for (int i = 0; i < count_byte * 8; ++i) {
+        *(tmp_bit + i) = tmp[i / 8] >> ((8 - i) % 8);
     }
+
+    if (buffer.capacity() - end < count_byte * 8) {
+        unsigned int part = buffer.capacity() - end;
+        std::copy(tmp_bit, tmp_bit + part, buffer.begin() + end);
+        std::copy(tmp_bit + part, tmp_bit + count_byte * 8, buffer.begin());
+    } else {
+        std::copy(tmp_bit, tmp_bit + count_byte * 8, buffer.begin() + end);
+    }
+
+    end = end + count_byte * 8;
+
+    if (end >= buffer.capacity())
+        end -= buffer.capacity();
+}
+
+bool buffer_reader::is_open() const {
+    return in_stream.is_open();
 }

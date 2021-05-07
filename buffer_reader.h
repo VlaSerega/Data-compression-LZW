@@ -13,7 +13,7 @@ private:
 public:
     ~buffer_reader();
 
-    explicit buffer_reader(const std::string &path, size_t buf_size);
+    explicit buffer_reader(const std::string &path, size_t buf_size = 2048);
 
     void skip(unsigned int count);
 
@@ -24,6 +24,8 @@ public:
     unsigned int size();
 
     void read(size_t count);
+
+    bool is_open() const;
 };
 
 

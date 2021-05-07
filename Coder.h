@@ -4,6 +4,7 @@
 #include "Dictionary.h"
 #include <string>
 #include <fstream>
+#include "buffer_reader.h"
 
 class Coder {
 private:
@@ -13,6 +14,9 @@ public:
 
     const Dictionary &getDictionary() const;
 
+    explicit Coder(const Dictionary &dictionary);
+
+    Coder();
 };
 
 
