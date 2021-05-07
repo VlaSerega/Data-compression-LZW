@@ -75,3 +75,8 @@ std::vector<bool> Dictionary::convert_num(unsigned long long int num, int length
     }
     return code;
 }
+
+std::string Dictionary::to_string() {
+
+    return std::__cxx11::string();
+}
