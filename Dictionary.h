@@ -12,7 +12,7 @@ public:
 class Dictionary {
 private:
     std::map<std::vector<bool>, size_t, cmp_word> dictionary;
-    unsigned int latter_length;
+    unsigned int latter_length = 0;
 public:
     Dictionary();
 
@@ -24,7 +24,7 @@ public:
 
     void generate_start_words(unsigned short int length);
 
-    static std::vector<bool> convert_num(unsigned long long int num, int length);
+    static std::vector<bool> convert_num(unsigned long long int num);
 
     std::string to_string() const;
 

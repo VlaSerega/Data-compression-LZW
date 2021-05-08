@@ -12,15 +12,9 @@ bool cmp_word::operator()(const std::vector<bool> &a, const std::vector<bool> &b
     return a.size() < b.size();
 }
 
-Dictionary::Dictionary() {
-}
+Dictionary::Dictionary() = default;
 
 bool Dictionary::exist_in(const std::vector<bool> &word) const {
-//    for(bool i : word){
-//        std::cout << std::to_string(i);
-//    }
-//    std::cout << std::endl;
-//    fflush(stdout);
     if (dictionary.find(word) != dictionary.end())
         return true;
     return false;
@@ -36,14 +30,7 @@ std::vector<bool> Dictionary::get_code(const std::vector<bool> &word) const{
 
     code_num = dictionary.find(word)->second;
 
-    code = std::vector<bool>(1);
-
-    while (code_num != 0) {
-        code.push_back(code_num % 2);
-        code_num /= 2;
-    }
-
-    return code;
+    return Dictionary::convert_num(code_num);
 }
 
 void Dictionary::push_word(const std::vector<bool> &word) {
@@ -59,23 +46,29 @@ void Dictionary::push_word(const std::vector<bool> &word) {
 }
 
 void Dictionary::generate_start_words(unsigned short int length) {
-    long long int count = (1 << length) - 1;
+    long long int count = 1 << length;
     latter_length = length;
 
     if (length > 12)
         throw std::out_of_range("Too large length of start words!");
 
-    for (; count >= 0; --count) {
-        dictionary.insert({Dictionary::convert_num(count, length),count});
+    for (int i = 0; i < count; ++i) {
+        dictionary.insert({Dictionary::convert_num(i), i});
     }
 }
 
-std::vector<bool> Dictionary::convert_num(unsigned long long int num, int length) {
-    std::vector<bool> code(length);
+std::vector<bool> Dictionary::convert_num(unsigned long long int num) {
+    std::vector<bool> code(1);
 
-    for (int i = length - 1; i >= 0; --i) {
-        code[i] = num % 2;
+    while (num != 0) {
+        code.push_back(num % 2);
         num /= 2;
+    }
+
+    for (int i = 0; i < code.size(); ++i){
+        bool tmp = code[i];
+        code[i] = code[code.size() - 1 - i];
+        code[code.size() - 1 - i] = tmp;
     }
     return code;
 }

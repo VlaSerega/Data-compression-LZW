@@ -7,6 +7,7 @@ buffer_reader::~buffer_reader() {
 
 buffer_reader::buffer_reader(const std::string &path, size_t buf_size) {
     in_stream = std::ifstream(path, std::ifstream::binary);
+    buffer = std::vector<bool>(buf_size);
     start = 0;
     end = 0;
 }
@@ -24,17 +25,18 @@ void buffer_reader::skip(unsigned int count) {
 std::vector<bool> buffer_reader::get(unsigned int count) {
     std::vector<bool> data(count);
 
-    if (buffer.size() < count) {
-        read(count - size() < buffer.capacity() - size() ? buffer.capacity() - size() : count - size());
+    if (this->size() < count) {
+        read(count - this->size() < buffer.capacity() - this->size() ?
+             buffer.capacity() - this->size() : count - this->size());
     }
 
     if (end < start) {
         if (buffer.capacity() - start < count) {
-            std::copy(buffer.begin() + start, buffer.begin() + start + count, data.begin());
-        } else {
             int part = buffer.capacity() - start;
             std::copy(buffer.begin() + start, buffer.end(), data.begin());
-            std::copy(buffer.begin(), buffer.begin() + count - part, data.begin() + part);
+            std::copy(buffer.begin(), buffer.begin() + (count - part), data.begin() + part);
+        } else {
+            std::copy(buffer.begin() + start, buffer.begin() + start + count, data.begin());
         }
     } else {
         std::copy(buffer.begin() + start, buffer.begin() + start + count, data.begin());
@@ -48,7 +50,7 @@ bool buffer_reader::is_end() {
 }
 
 unsigned int buffer_reader::size() {
-    unsigned int size = 0;
+    unsigned int size;
 
     if (end < start)
         size = buffer.capacity() - start + end;
@@ -71,14 +73,10 @@ void buffer_reader::read(size_t count) {
         start = start + (buffer.capacity() - old_capacity);
     }
 
-    int count_byte = count / 8 + 1;
-    char tmp[count_byte];
+    long count_byte = count / 8 + 1;
     bool tmp_bit[count_byte * 8];
-    in_stream.read(tmp, count_byte);
-
-    for (int i = 0; i < count_byte * 8; ++i) {
-        *(tmp_bit + i) = tmp[i / 8] >> ((8 - i) % 8);
-    }
+    in_stream.read((char*) tmp_bit, count_byte);
+    count_byte = in_stream.gcount();
 
     if (buffer.capacity() - end < count_byte * 8) {
         unsigned int part = buffer.capacity() - end;
