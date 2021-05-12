@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Coder.h"
 
 void Coder::code(const std::string &input_file, const std::string &output_file) {
@@ -10,20 +11,21 @@ void Coder::code(const std::string &input_file, const std::string &output_file) 
     unsigned int length = 0;
     unsigned int latter_length = dictionary.getLatterLength();
 
-    std::vector<bool> w(0);
-
     while (!in.is_end()) {
-        in.read(latter_length);
-        w = in.get(length + latter_length);
+        word_ w = in.get(length + latter_length);
 
         if (!dictionary.exist_in(w)) {
-            w.erase(w.begin() + length, w.end());
-            w.swap(w);
+            dictionary.push_word(w);
 
-            dictionary.get_code(w);
+            dictionary.get_code({w.first, length});
 
             in.skip(length);
             length = 0;
+        } else {
+            if (in.all_get(length + latter_length)) {
+
+                in.skip(length + latter_length);
+            }
         }
 
         length += latter_length;

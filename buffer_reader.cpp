@@ -22,7 +22,7 @@ void buffer_reader::skip(unsigned int count) {
         start = end = 0;
 }
 
-std::vector<bool> buffer_reader::get(unsigned int count) {
+word_ buffer_reader::get(unsigned int count) {
     std::vector<bool> data(count);
 
     if (this->size() < count) {
@@ -32,7 +32,7 @@ std::vector<bool> buffer_reader::get(unsigned int count) {
 
     if (end < start) {
         if (buffer.capacity() - start < count) {
-            int part = buffer.capacity() - start;
+            unsigned int part = buffer.capacity() - start;
             std::copy(buffer.begin() + start, buffer.end(), data.begin());
             std::copy(buffer.begin(), buffer.begin() + (count - part), data.begin() + part);
         } else {
@@ -42,11 +42,15 @@ std::vector<bool> buffer_reader::get(unsigned int count) {
         std::copy(buffer.begin() + start, buffer.begin() + start + count, data.begin());
     }
 
-    return data;
+    return {data, count < size() ? count : size()};
 }
 
 bool buffer_reader::is_end() {
-    return in_stream.eof();
+    return in_stream.eof() && end == start;
+}
+
+bool buffer_reader::all_get(unsigned int count) {
+    return in_stream.eof() && count >= size();
 }
 
 unsigned int buffer_reader::size() {
@@ -61,29 +65,29 @@ unsigned int buffer_reader::size() {
 }
 
 void buffer_reader::read(size_t count) {
-    size_t old_capacity;
 
-    if (buffer.capacity() - size() < count) {
-        old_capacity = buffer.capacity();
-        buffer.reserve((count < buffer.capacity() ? buffer.capacity() : count) * 2);
-
-        std::copy(buffer.rbegin() - buffer.capacity() + start, buffer.rbegin() - buffer.capacity() + old_capacity,
-                  buffer.rbegin());
-
-        start = start + (buffer.capacity() - old_capacity);
+    if (buffer.capacity() - this->size() < count) {
+        set_capacity(count + this->size());
     }
 
-    long count_byte = count / 8 + 1;
-    bool tmp_bit[count_byte * 8];
-    in_stream.read((char*) tmp_bit, count_byte);
+    unsigned long count_byte = count / 8 + 1;
+    char tmp[count_byte];
+    in_stream.read(tmp, count_byte);
     count_byte = in_stream.gcount();
 
     if (buffer.capacity() - end < count_byte * 8) {
         unsigned int part = buffer.capacity() - end;
-        std::copy(tmp_bit, tmp_bit + part, buffer.begin() + end);
-        std::copy(tmp_bit + part, tmp_bit + count_byte * 8, buffer.begin());
+        for (int i = 0; i < part * 8; ++i){
+            buffer[i + end] = (tmp[i / 8] >> (7 - (i % 8))) & 0x1;
+        }
+
+        for (int i = part * 8; i < count_byte * 8; ++i){
+            buffer[i - part] = (tmp[i / 8] << (7 - (i % 8))) & 0x1;
+        }
     } else {
-        std::copy(tmp_bit, tmp_bit + count_byte * 8, buffer.begin() + end);
+        for (int i = 0; i < count_byte * 8; ++i){
+            buffer[i + end] = (tmp[i / 8] >> (7 - (i % 8))) & 0x1;
+        }
     }
 
     end = end + count_byte * 8;
@@ -94,4 +98,16 @@ void buffer_reader::read(size_t count) {
 
 bool buffer_reader::is_open() const {
     return in_stream.is_open();
+}
+
+void buffer_reader::set_capacity(unsigned int count) {
+    if (buffer.capacity() < count) {
+        int old_cap = buffer.capacity();
+        buffer.reserve(count);
+
+        if(end < start){
+            std::copy(buffer.rbegin() + buffer.capacity() - old_cap, buffer.rbegin() + buffer.capacity() - start, buffer.rbegin());
+            start = start + buffer.capacity() - old_cap;
+        }
+    }
 }

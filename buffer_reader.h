@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <vector>
+#include "Dictionary.h"
 
 class buffer_reader {
 private:
@@ -17,7 +18,11 @@ public:
 
     void skip(unsigned int count);
 
-    std::vector<bool> get(unsigned int count);
+    word_ get(unsigned int count);
+
+    void set_capacity(unsigned int count);
+
+    bool all_get(unsigned int count);
 
     bool is_end();
 

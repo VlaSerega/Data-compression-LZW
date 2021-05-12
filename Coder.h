@@ -5,6 +5,7 @@
 #include <string>
 #include <fstream>
 #include "buffer_reader.h"
+#include "Dictionary.h"
 
 class Coder {
 private:
@@ -20,4 +21,4 @@ public:
 };
 
 
-#endif //DATA_COMPRESSION_LZW_CODER_H
+#endif
