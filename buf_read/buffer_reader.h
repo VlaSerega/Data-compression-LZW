@@ -3,7 +3,7 @@
 
 #include <fstream>
 #include <vector>
-#include "Dictionary.h"
+#include "../coder/Dictionary.h"
 
 class buffer_reader {
 private:

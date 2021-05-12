@@ -1,7 +1,7 @@
 #include <iostream>
 #include <map>
-#include "Dictionary.h"
-#include "Coder.h"
+#include "../coder/Dictionary.h"
+#include "../coder/Coder.h"
 
 using namespace std;
 

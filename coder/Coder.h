@@ -4,7 +4,7 @@
 #include "Dictionary.h"
 #include <string>
 #include <fstream>
-#include "buffer_reader.h"
+#include "../buf_read/buffer_reader.h"
 #include "Dictionary.h"
 
 class Coder {
